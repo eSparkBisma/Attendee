@@ -1,5 +1,4 @@
 export interface Attendance {
-  staffId: number;
-  date: string;
+  staffId: number | undefined;
   status: string;
 }

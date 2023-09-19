@@ -21,9 +21,9 @@ const store = hookstate(
         {staffId: 6, name: "chandler",username:"chandler123",password: "6666"},
         {staffId: 7, name: "gunther",username:"gunther123",password: "7777", admin: true}
     ],
+    attendance: [],
 
-    loggedIn: 0,
-    attendance: []
+    attendanceStudents: [],
 })
 
 export default store;

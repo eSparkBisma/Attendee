@@ -14,27 +14,37 @@ type LoginScreenProps = {
 
 const LoginScreen: React.FC<LoginScreenProps> = () => {
   const navigation = useNavigation<ScreenNavigationProp>();
-  const roleState = useHookstate('staff'); // Default role is 'staff'
+  const roleState = useHookstate('staff');
   const usernameState = useHookstate('');
   const passwordState = useHookstate('');
   const staffState = useHookstate(store.staff);
+  const userData = useHookstate<{
+    staffId: number;
+    name: string;
+    username: string;
+    password: string;
+    headOf?: number;
+  } | null>(null);
 
-  const loggedIn = useHookstate(store.loggedIn);
   const loadUser = async () => {
-    const storedUser = await AsyncStorage.getItem('@user');
-    if (storedUser) {
-      navigation.navigate('StaffScreen');
+    try {
+      const data = await AsyncStorage.getItem('@user');
+      const adminData = await AsyncStorage.getItem('@admin-user');
+      if (data) {
+        userData.set(JSON.parse(data));
+        navigation.navigate('StaffScreen');
+      } else if (adminData) {
+        userData.set(JSON.parse(adminData));
+        navigation.navigate('AdminScreen');
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
     }
   };
 
   useEffect(() => {
     loadUser();
   }, []);
-
-  // const getHeadName = (headId: number) => {
-  //   const head = staffState.value.find(staff => staff.staffId === headId);
-  //   return head ? head.name : '';
-  // };
 
   const handleLogin = () => {
     const role = roleState.value;
@@ -47,7 +57,14 @@ const LoginScreen: React.FC<LoginScreenProps> = () => {
       if (staff) {
         AsyncStorage.setItem('@user', JSON.stringify(staff));
         console.log('Staff logged in:', staff);
-        loggedIn.set(staff.staffId);
+        userData.set({
+          headOf: staff?.headOf,
+          name: staff.name,
+          password: staff.password,
+          staffId: staff.staffId,
+          username: staff.username,
+        });
+        console.log(userData);
         navigation.navigate('StaffScreen');
       } else {
         console.log('Staff login failed');
@@ -61,7 +78,13 @@ const LoginScreen: React.FC<LoginScreenProps> = () => {
       );
       if (admin) {
         console.log('Admin logged in:', admin);
-        loggedIn.set(admin.staffId);
+        AsyncStorage.setItem('@admin-user', JSON.stringify(admin));
+        userData.set({
+          name: admin.name,
+          password: admin.password,
+          staffId: admin.staffId,
+          username: admin.username,
+        });
         navigation.navigate('AdminScreen');
       } else {
         console.log('Admin login failed');

@@ -1,25 +1,39 @@
 import {useHookstate} from '@hookstate/core';
 import React, {useEffect} from 'react';
-import {Button, StyleSheet, Text, View, useColorScheme} from 'react-native';
+import {Button, StyleSheet, Text, View} from 'react-native';
 import store from '../store/store';
 import {Attendance} from '../store/Attendance';
 import {useNavigation} from '@react-navigation/native';
 import {ScreenNavigationProp} from '../navigation/type';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import StudentsList from '../components/ListStudents';
 
 const StaffScreen: React.FC = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-  const staffState = useHookstate(store.staff);
   const attendanceState = useHookstate<Attendance[]>(store.attendance);
-  const loggedIn = useHookstate(store.loggedIn);
-  const studentID = useHookstate('');
   const navigation = useNavigation<ScreenNavigationProp>();
+  const userData = useHookstate<{
+    headOf?: number;
+    name: string;
+    password: string;
+    staffId: number;
+    username: string;
+  } | null>(null);
 
+  //data--->string and userData--->JSON object
   const loadUser = async () => {
-    const storedUser = await AsyncStorage.getItem('@user');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      loggedIn.set(user.staffId);
+    try {
+      const data = await AsyncStorage.getItem('@user');
+      if (data) {
+        userData.set(JSON.parse(data));
+        console.log(userData);
+      }
+      const storedAttendance = await AsyncStorage.getItem('@attendance');
+      if (storedAttendance) {
+        const parsedAttendance = JSON.parse(storedAttendance);
+        attendanceState.set(parsedAttendance);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
     }
   };
 
@@ -27,41 +41,62 @@ const StaffScreen: React.FC = () => {
     loadUser();
   }, []);
 
-  const handleAttendancePunch = () => {
-    const staffId = loggedIn.value;
+  const handleAttendancePunch = async () => {
+    const staffId = userData.value?.staffId;
     console.log(attendanceState.value);
-    const currentDate = new Date().toISOString();
     const existingAttendance = attendanceState.value.findIndex(
-      (record: {staffId: number; date: string}) => record.staffId === staffId,
+      (record: {staffId: number | undefined}) => record.staffId === staffId,
     );
 
     if (existingAttendance === -1) {
       const newAttendanceRecord: Attendance = {
         staffId: staffId,
-        date: currentDate,
         status: 'present',
       };
       attendanceState.merge([newAttendanceRecord]);
-      console.log('Attendance punched:', newAttendanceRecord);
+
+      try {
+        const storedAttendance = await AsyncStorage.getItem('@attendance');
+        let parsedAttendance = storedAttendance
+          ? JSON.parse(storedAttendance)
+          : [];
+        parsedAttendance.push(newAttendanceRecord);
+        await AsyncStorage.setItem(
+          '@attendance',
+          JSON.stringify(parsedAttendance),
+        );
+        console.log('Attendance punched:', newAttendanceRecord);
+      } catch (error) {
+        console.error('Error saving attendance:', error);
+      }
     } else {
       console.log('Attendance already punched for today.');
     }
   };
 
-  const handleMarkAttendance = () => {};
-
   const handleLogout = () => {
-    loggedIn.set(0);
     AsyncStorage.removeItem('@user');
-    navigation.goBack();
+    userData.set(null);
+    navigation.navigate('LoginScreen');
   };
 
   return (
     <View style={{}}>
-      {loggedIn.value ? (
+      {userData.value ? (
         <>
-          <Text>logged in as {loggedIn.value}</Text>
+          <Text style={{textAlign: 'center', padding: '3%'}}>
+            logged in as {userData.value.name}
+          </Text>
           <Button title="Punch Attendance" onPress={handleAttendancePunch} />
+
+          {userData.value.headOf ? (
+            userData.value.headOf === 9 ? (
+              <StudentsList classNumber={9} />
+            ) : (
+              <StudentsList classNumber={10} />
+            )
+          ) : null}
+
           <Button title="Logout" onPress={handleLogout} />
         </>
       ) : (
