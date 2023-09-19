@@ -4,7 +4,6 @@ import {PaperProvider} from 'react-native-paper';
 import AppNavigator from './navigation/AppNavigator';
 
 const App: React.FC = () => {
-  const isDarkMode = useColorScheme() === 'dark';
   return (
     <PaperProvider>
       <AppNavigator />

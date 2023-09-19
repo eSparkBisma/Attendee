@@ -43,7 +43,7 @@ const StaffScreen: React.FC = () => {
 
   const handleAttendancePunch = async () => {
     const staffId = userData.value?.staffId;
-    console.log(attendanceState.value);
+
     const existingAttendance = attendanceState.value.findIndex(
       (record: {staffId: number | undefined}) => record.staffId === staffId,
     );

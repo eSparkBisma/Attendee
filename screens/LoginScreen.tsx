@@ -56,7 +56,7 @@ const LoginScreen: React.FC<LoginScreenProps> = () => {
       );
       if (staff) {
         AsyncStorage.setItem('@user', JSON.stringify(staff));
-        console.log('Staff logged in:', staff);
+        // initially tried to set the staff object directly but that will not work
         userData.set({
           headOf: staff?.headOf,
           name: staff.name,
@@ -64,7 +64,7 @@ const LoginScreen: React.FC<LoginScreenProps> = () => {
           staffId: staff.staffId,
           username: staff.username,
         });
-        console.log(userData);
+        console.log('logged in as: ', userData.value?.name);
         navigation.navigate('StaffScreen');
       } else {
         console.log('Staff login failed');
@@ -77,7 +77,6 @@ const LoginScreen: React.FC<LoginScreenProps> = () => {
           admin.admin === true,
       );
       if (admin) {
-        console.log('Admin logged in:', admin);
         AsyncStorage.setItem('@admin-user', JSON.stringify(admin));
         userData.set({
           name: admin.name,
@@ -85,6 +84,7 @@ const LoginScreen: React.FC<LoginScreenProps> = () => {
           staffId: admin.staffId,
           username: admin.username,
         });
+        console.log('Admin logged in as: ', userData.value?.name);
         navigation.navigate('AdminScreen');
       } else {
         console.log('Admin login failed');

@@ -33,18 +33,12 @@ const StudentsList: React.FC<{classNumber: number}> = ({classNumber}) => {
   };
 
   const handleBulkAttendanceMarking = async () => {
-    const attendanceKey = `@student-attendance-class-${classNumber}`;
-
     try {
       const bulkAttendance = filteredStudents.map(student => ({
         id: student.id,
         status: 'present',
       }));
-
       attendanceState.merge(bulkAttendance);
-
-      await AsyncStorage.setItem(attendanceKey, JSON.stringify(bulkAttendance));
-
       console.log('Bulk Attendance marked for Class', classNumber);
     } catch (error) {
       console.error('Error saving bulk attendance:', error);

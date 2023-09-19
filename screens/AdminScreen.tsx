@@ -19,7 +19,6 @@ const AdminScreen: React.FC = () => {
   const attendanceState = useHookstate(store.attendance);
   const studentAttendanceState = useHookstate(store.attendanceStudents);
 
-  console.log(studentAttendanceState.value);
   const navigation = useNavigation<ScreenNavigationProp>();
   const userData = useHookstate<{
     headOf?: number;
@@ -30,29 +29,33 @@ const AdminScreen: React.FC = () => {
     admin: boolean;
   } | null>(null);
 
-  // Function to get attendance status (present/absent)
+  //attendance status (present/absent)
   const getAttendanceStatus = (id: number) => {
     const attendanceRecord = attendanceState.value.find((record: any) => {
       return record.staffId === id;
     });
     return attendanceRecord ? 'Present' : 'Absent';
   };
+
   const getStudentAttendanceStatus = (id: number) => {
     const attendanceRecord = studentAttendanceState.value.find(
       (record: any) => {
         return record.id === id;
       },
     );
-
     return attendanceRecord ? 'Present' : 'Absent';
   };
 
   const groupedStudentsByClass: Record<string, any[]> = {};
+  //iteration through students array ---> students->hookstate obj
   students.value.forEach((student: any) => {
+    //destructing class ppty from student obj and assign to a students class variable
     const {class: studentClass} = student;
+    //checking if students are grouped
     if (!groupedStudentsByClass[studentClass]) {
       groupedStudentsByClass[studentClass] = [];
     }
+    //pushing student to his class group
     groupedStudentsByClass[studentClass].push(student);
   });
 
